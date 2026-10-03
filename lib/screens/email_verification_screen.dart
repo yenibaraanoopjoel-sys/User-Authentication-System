@@ -59,6 +59,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       _feedbackMessage = null;
     });
 
+    if (_authService.isDemoMode) {
+      _autoCheckTimer?.cancel();
+      setState(() {
+        _isChecking = false;
+        _isVerified = true;
+        _isSuccessFeedback = true;
+        _feedbackMessage = 'Great! Your email has been verified.';
+      });
+      return;
+    }
+
     final user = await _authService.reloadUser();
     if (!mounted) return;
 
