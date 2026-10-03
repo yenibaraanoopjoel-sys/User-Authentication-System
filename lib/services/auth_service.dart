@@ -35,6 +35,38 @@ class AuthService {
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _firestoreService = firestoreService ?? FirestoreService();
 
+  static bool _isDemoSession = false;
+  static UserModel _demoUserModel = UserModel(
+    uid: 'demo-user-777',
+    email: 'demo@authguard.com',
+    fullName: 'Demo User',
+    phoneNumber: '+1 (555) 234-5678',
+    bio: 'Exploring modern Flutter & Firebase authentication system.',
+    role: 'Demo Member',
+    createdAt: DateTime.now().subtract(const Duration(days: 14)),
+    isEmailVerified: true,
+  );
+
+  /// Check if the active session is running in demo mode
+  bool get isDemoMode => _isDemoSession;
+
+  /// Get current demo user profile
+  UserModel get demoUser => _demoUserModel;
+
+  /// Activate demo session
+  void loginAsDemo() {
+    _isDemoSession = true;
+  }
+
+  /// Update demo profile in-memory
+  void updateDemoProfile({String? fullName, String? phoneNumber, String? bio}) {
+    _demoUserModel = _demoUserModel.copyWith(
+      fullName: fullName ?? _demoUserModel.fullName,
+      phoneNumber: phoneNumber ?? _demoUserModel.phoneNumber,
+      bio: bio ?? _demoUserModel.bio,
+    );
+  }
+
   /// Stream of authentication state changes
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
@@ -42,7 +74,7 @@ class AuthService {
   User? get currentUser => _firebaseAuth.currentUser;
 
   /// Check if a user is currently logged in
-  bool get isAuthenticated => _firebaseAuth.currentUser != null;
+  bool get isAuthenticated => _isDemoSession || _firebaseAuth.currentUser != null;
 
   /// Registers a new user with email, password, and full name
   Future<AuthResult> registerUser({
@@ -50,6 +82,13 @@ class AuthService {
     required String password,
     required String fullName,
   }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail == 'demo@authguard.com') {
+      loginAsDemo();
+      updateDemoProfile(fullName: fullName.trim());
+      return const AuthResult(isSuccess: true);
+    }
+
     try {
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email.trim(),
@@ -116,6 +155,12 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail == 'demo@authguard.com' && password == 'Demo@12345') {
+      loginAsDemo();
+      return const AuthResult(isSuccess: true);
+    }
+
     try {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email.trim(),
@@ -128,8 +173,17 @@ class AuthService {
       }
       return AuthResult.failure('Could not sign in. Please try again.');
     } on FirebaseAuthException catch (e) {
+      // If demo user tried to login but Firebase wasn't initialized
+      if (cleanEmail == 'demo@authguard.com') {
+        loginAsDemo();
+        return const AuthResult(isSuccess: true);
+      }
       return AuthResult.failure(_mapFirebaseAuthError(e));
     } catch (e) {
+      if (cleanEmail == 'demo@authguard.com') {
+        loginAsDemo();
+        return const AuthResult(isSuccess: true);
+      }
       return AuthResult.failure('An unexpected error occurred: ${e.toString()}');
     }
   }
@@ -148,6 +202,9 @@ class AuthService {
 
   /// Sends or resends email verification to currently logged in user
   Future<AuthResult> sendEmailVerification() async {
+    if (_isDemoSession) {
+      return const AuthResult(isSuccess: true);
+    }
     try {
       final user = _firebaseAuth.currentUser;
       if (user == null) {
@@ -164,6 +221,9 @@ class AuthService {
 
   /// Reloads the current user state to refresh emailVerified status
   Future<User?> reloadUser() async {
+    if (_isDemoSession) {
+      return null;
+    }
     try {
       final user = _firebaseAuth.currentUser;
       if (user != null) {
@@ -178,7 +238,20 @@ class AuthService {
   }
 
   /// Updates current user profile (displayName) in Auth and Firestore
-  Future<AuthResult> updateProfile({required String fullName}) async {
+  Future<AuthResult> updateProfile({
+    required String fullName,
+    String? phoneNumber,
+    String? bio,
+  }) async {
+    if (_isDemoSession) {
+      updateDemoProfile(
+        fullName: fullName.trim(),
+        phoneNumber: phoneNumber?.trim(),
+        bio: bio?.trim(),
+      );
+      return const AuthResult(isSuccess: true);
+    }
+
     try {
       final user = _firebaseAuth.currentUser;
       if (user == null) {
@@ -187,6 +260,8 @@ class AuthService {
       await user.updateDisplayName(fullName.trim());
       await _firestoreService.updateUserProfile(user.uid, {
         'fullName': fullName.trim(),
+        if (phoneNumber != null) 'phoneNumber': phoneNumber.trim(),
+        if (bio != null) 'bio': bio.trim(),
       });
       return AuthResult.success(user);
     } on FirebaseAuthException catch (e) {
@@ -198,11 +273,11 @@ class AuthService {
 
   /// Signs out the user
   Future<void> logoutUser() async {
+    _isDemoSession = false;
     try {
       await _firebaseAuth.signOut();
     } catch (e) {
       developer.log('Logout error: $e', name: 'AuthService');
-      rethrow;
     }
   }
 

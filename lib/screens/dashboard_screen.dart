@@ -26,6 +26,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadUserProfile() async {
+    if (_authService.isDemoMode) {
+      if (!mounted) return;
+      setState(() {
+        _userProfile = _authService.demoUser;
+      });
+      return;
+    }
+
     final user = _authService.currentUser;
     if (user == null) {
       if (mounted) {
@@ -127,19 +135,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
-    if (user == null) {
+    final isDemo = _authService.isDemoMode;
+    if (user == null && !isDemo) {
       return const SizedBox.shrink();
     }
 
     final displayName = _userProfile?.fullName.isNotEmpty == true
         ? _userProfile!.fullName
-        : (user.displayName ?? user.email?.split('@').first ?? 'User');
+        : (user?.displayName ?? user?.email?.split('@').first ?? 'Demo User');
 
-    final email = user.email ?? 'No email';
-    final isVerified = user.emailVerified;
-    final creationDate = user.metadata.creationTime != null
-        ? DateFormat('MMMM dd, yyyy').format(user.metadata.creationTime!)
-        : 'N/A';
+    final email = _userProfile?.email ?? user?.email ?? 'demo@authguard.com';
+    final isVerified = _userProfile?.isEmailVerified ?? user?.emailVerified ?? true;
+    final creationDate = user?.metadata.creationTime != null
+        ? DateFormat('MMMM dd, yyyy').format(user!.metadata.creationTime!)
+        : DateFormat('MMMM dd, yyyy').format(_userProfile?.createdAt ?? DateTime.now());
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -299,7 +308,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: _buildInfoCard(
                                 title: 'Authentication Status',
                                 value: 'Authenticated',
-                                subtitle: 'UID: ${user.uid.substring(0, 10)}...',
+                                subtitle: 'UID: ${(user?.uid ?? _userProfile?.uid ?? "demo").substring(0, 8)}...',
                                 icon: Icons.lock_clock_outlined,
                                 iconColor: AppColors.primaryLight,
                                 badgeColor: AppColors.primaryBgLight.withValues(alpha: 0.15),

@@ -31,6 +31,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
+    if (_authService.isDemoMode) {
+      if (!mounted) return;
+      setState(() {
+        _userProfile = _authService.demoUser;
+        _isLoading = false;
+      });
+      return;
+    }
+
     final user = _authService.currentUser;
     if (user == null) {
       if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
@@ -227,17 +236,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
-    if (user == null) return const SizedBox.shrink();
+    final isDemo = _authService.isDemoMode;
+    if (user == null && !isDemo) return const SizedBox.shrink();
 
     final name = _userProfile?.fullName.isNotEmpty == true
         ? _userProfile!.fullName
-        : (user.displayName ?? user.email?.split('@').first ?? 'User');
+        : (user?.displayName ?? user?.email?.split('@').first ?? 'Demo User');
 
-    final email = user.email ?? 'No email';
-    final isVerified = user.emailVerified;
-    final creationDate = user.metadata.creationTime != null
-        ? DateFormat('MMMM dd, yyyy - hh:mm a').format(user.metadata.creationTime!)
-        : 'N/A';
+    final email = _userProfile?.email ?? user?.email ?? 'demo@authguard.com';
+    final isVerified = _userProfile?.isEmailVerified ?? user?.emailVerified ?? true;
+    final creationDate = user?.metadata.creationTime != null
+        ? DateFormat('MMMM dd, yyyy - hh:mm a').format(user!.metadata.creationTime!)
+        : DateFormat('MMMM dd, yyyy - hh:mm a').format(_userProfile?.createdAt ?? DateTime.now());
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -439,7 +449,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildDetailTile(
                           icon: Icons.fingerprint_outlined,
                           title: 'Firebase UID',
-                          value: user.uid,
+                          value: user?.uid ?? _userProfile?.uid ?? 'demo-user-777',
                         ),
                         _buildDetailTile(
                           icon: Icons.shield_outlined,
@@ -514,7 +524,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-          if (trailing != null) trailing,
+          if (trailing != null) ...[trailing],
         ],
       ),
     );

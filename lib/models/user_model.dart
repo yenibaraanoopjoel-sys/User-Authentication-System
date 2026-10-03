@@ -9,6 +9,8 @@ class UserModel {
   final DateTime? createdAt;
   final bool isEmailVerified;
   final String? photoUrl;
+  final String? phoneNumber;
+  final String? bio;
 
   const UserModel({
     required this.uid,
@@ -18,6 +20,8 @@ class UserModel {
     this.createdAt,
     this.isEmailVerified = false,
     this.photoUrl,
+    this.phoneNumber,
+    this.bio,
   });
 
   Map<String, dynamic> toMap() {
@@ -31,6 +35,8 @@ class UserModel {
           : FieldValue.serverTimestamp(),
       'isEmailVerified': isEmailVerified,
       'photoUrl': photoUrl,
+      'phoneNumber': phoneNumber,
+      'bio': bio,
     };
   }
 
@@ -50,6 +56,8 @@ class UserModel {
       createdAt: parsedCreatedAt,
       isEmailVerified: map['isEmailVerified'] as bool? ?? false,
       photoUrl: map['photoUrl'] as String?,
+      phoneNumber: map['phoneNumber'] as String?,
+      bio: map['bio'] as String?,
     );
   }
 
@@ -65,6 +73,8 @@ class UserModel {
       createdAt: user.metadata.creationTime,
       isEmailVerified: user.emailVerified,
       photoUrl: user.photoURL,
+      phoneNumber: user.phoneNumber,
+      bio: null,
     );
   }
 
@@ -76,6 +86,8 @@ class UserModel {
     DateTime? createdAt,
     bool? isEmailVerified,
     String? photoUrl,
+    String? phoneNumber,
+    String? bio,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -85,6 +97,8 @@ class UserModel {
       createdAt: createdAt ?? this.createdAt,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       photoUrl: photoUrl ?? this.photoUrl,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      bio: bio ?? this.bio,
     );
   }
 }

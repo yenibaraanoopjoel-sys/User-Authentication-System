@@ -88,6 +88,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  void _handleDemoRegister() {
+    _authService.loginAsDemo();
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.dashboard,
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -287,6 +296,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       icon: Icons.check_circle_outline,
                       isLoading: _isLoading,
                       onPressed: _isLoading ? null : _handleRegister,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Quick Demo Account Button
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: AppColors.secondary, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        backgroundColor: AppColors.secondary.withValues(alpha: 0.1),
+                      ),
+                      icon: const Icon(Icons.flash_on_rounded, color: AppColors.secondary, size: 20),
+                      label: const Text(
+                        '⚡ Instant Demo Account (One-Click)',
+                        style: TextStyle(
+                          color: AppColors.secondary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      onPressed: _isLoading ? null : _handleDemoRegister,
                     ),
                     const SizedBox(height: 20),
 
