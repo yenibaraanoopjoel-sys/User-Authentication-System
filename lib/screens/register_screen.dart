@@ -89,7 +89,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _handleDemoRegister() {
-    _authService.loginAsDemo();
+    _authService.loginAsDemo(
+      fullName: 'Yenibara Anoop Joel',
+      email: 'anoopjoelyenibara@gmail.com',
+    );
     Navigator.pushNamedAndRemoveUntil(
       context,
       AppRoutes.dashboard,
@@ -311,7 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       icon: const Icon(Icons.flash_on_rounded, color: AppColors.secondary, size: 20),
                       label: const Text(
-                        '⚡ Instant Demo Account (One-Click)',
+                        '⚡ Instant Access (Yenibara Anoop Joel)',
                         style: TextStyle(
                           color: AppColors.secondary,
                           fontWeight: FontWeight.bold,

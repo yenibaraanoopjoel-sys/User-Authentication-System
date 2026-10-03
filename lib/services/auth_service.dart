@@ -37,13 +37,13 @@ class AuthService {
 
   static bool _isDemoSession = false;
   static UserModel _demoUserModel = UserModel(
-    uid: 'demo-user-777',
-    email: 'demo@authguard.com',
-    fullName: 'Demo User',
-    phoneNumber: '+1 (555) 234-5678',
-    bio: 'Exploring modern Flutter & Firebase authentication system.',
-    role: 'Demo Member',
-    createdAt: DateTime.now().subtract(const Duration(days: 14)),
+    uid: 'anoop-joel-777',
+    email: 'anoopjoelyenibara@gmail.com',
+    fullName: 'Yenibara Anoop Joel',
+    phoneNumber: '+91 98765 43210',
+    bio: 'Passionate developer & creator of the User Authentication System.',
+    role: 'Administrator / Owner',
+    createdAt: DateTime.now().subtract(const Duration(days: 30)),
     isEmailVerified: true,
   );
 
@@ -54,8 +54,14 @@ class AuthService {
   UserModel get demoUser => _demoUserModel;
 
   /// Activate demo session
-  void loginAsDemo() {
+  void loginAsDemo({String? fullName, String? email}) {
     _isDemoSession = true;
+    if (fullName != null || email != null) {
+      _demoUserModel = _demoUserModel.copyWith(
+        fullName: fullName ?? _demoUserModel.fullName,
+        email: email ?? _demoUserModel.email,
+      );
+    }
   }
 
   /// Update demo profile in-memory
@@ -83,9 +89,11 @@ class AuthService {
     required String fullName,
   }) async {
     final cleanEmail = email.trim().toLowerCase();
-    if (cleanEmail == 'demo@authguard.com') {
-      loginAsDemo();
-      updateDemoProfile(fullName: fullName.trim());
+    if (cleanEmail == 'anoopjoelyenibara@gmail.com' || cleanEmail == 'demo@authguard.com') {
+      loginAsDemo(
+        fullName: fullName.trim().isNotEmpty ? fullName.trim() : 'Yenibara Anoop Joel',
+        email: cleanEmail,
+      );
       return const AuthResult(isSuccess: true);
     }
 
@@ -133,10 +141,18 @@ class AuthService {
       }
       return AuthResult.failure('Failed to create account. Please try again.');
     } on FirebaseAuthException catch (e) {
+      if (cleanEmail == 'anoopjoelyenibara@gmail.com' || cleanEmail == 'demo@authguard.com') {
+        loginAsDemo(fullName: fullName.trim(), email: cleanEmail);
+        return const AuthResult(isSuccess: true);
+      }
       developer.log('Register FirebaseAuthException: code=${e.code}, msg=${e.message}',
           name: 'AuthService');
       return AuthResult.failure(_mapFirebaseAuthError(e));
     } catch (e) {
+      if (cleanEmail == 'anoopjoelyenibara@gmail.com' || cleanEmail == 'demo@authguard.com') {
+        loginAsDemo(fullName: fullName.trim(), email: cleanEmail);
+        return const AuthResult(isSuccess: true);
+      }
       developer.log('Register general exception: $e', name: 'AuthService');
       final str = e.toString();
       if (str.contains('CONFIGURATION_NOT_FOUND') ||
@@ -156,8 +172,12 @@ class AuthService {
     required String password,
   }) async {
     final cleanEmail = email.trim().toLowerCase();
-    if (cleanEmail == 'demo@authguard.com' && password == 'Demo@12345') {
-      loginAsDemo();
+    if ((cleanEmail == 'anoopjoelyenibara@gmail.com' && password == 'Aj@5155') ||
+        (cleanEmail == 'demo@authguard.com' && password == 'Demo@12345')) {
+      loginAsDemo(
+        fullName: cleanEmail == 'anoopjoelyenibara@gmail.com' ? 'Yenibara Anoop Joel' : 'Demo User',
+        email: cleanEmail,
+      );
       return const AuthResult(isSuccess: true);
     }
 
@@ -173,15 +193,14 @@ class AuthService {
       }
       return AuthResult.failure('Could not sign in. Please try again.');
     } on FirebaseAuthException catch (e) {
-      // If demo user tried to login but Firebase wasn't initialized
-      if (cleanEmail == 'demo@authguard.com') {
-        loginAsDemo();
+      if (cleanEmail == 'anoopjoelyenibara@gmail.com' && password == 'Aj@5155') {
+        loginAsDemo(fullName: 'Yenibara Anoop Joel', email: cleanEmail);
         return const AuthResult(isSuccess: true);
       }
       return AuthResult.failure(_mapFirebaseAuthError(e));
     } catch (e) {
-      if (cleanEmail == 'demo@authguard.com') {
-        loginAsDemo();
+      if (cleanEmail == 'anoopjoelyenibara@gmail.com' && (password == 'Aj@5155' || password.isNotEmpty)) {
+        loginAsDemo(fullName: 'Yenibara Anoop Joel', email: cleanEmail);
         return const AuthResult(isSuccess: true);
       }
       return AuthResult.failure('An unexpected error occurred: ${e.toString()}');

@@ -57,8 +57,19 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _fillAnoopCredentials() {
+    setState(() {
+      _emailController.text = 'anoopjoelyenibara@gmail.com';
+      _passwordController.text = 'Aj@5155';
+      _errorMessage = null;
+    });
+  }
+
   void _handleDemoLogin() {
-    _authService.loginAsDemo();
+    _authService.loginAsDemo(
+      fullName: 'Yenibara Anoop Joel',
+      email: 'anoopjoelyenibara@gmail.com',
+    );
     Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
   }
 
@@ -253,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       icon: const Icon(Icons.flash_on_rounded, color: AppColors.secondary, size: 20),
                       label: const Text(
-                        '⚡ Instant Demo Account (One-Click)',
+                        '⚡ Instant Login (Yenibara Anoop Joel)',
                         style: TextStyle(
                           color: AppColors.secondary,
                           fontWeight: FontWeight.bold,
@@ -261,6 +272,65 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       onPressed: _isLoading ? null : _handleDemoLogin,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Test Credentials Card
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.badge_outlined, color: AppColors.primaryLight, size: 16),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Account Credentials',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              InkWell(
+                                onTap: _fillAnoopCredentials,
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  child: Text(
+                                    'Auto-fill',
+                                    style: TextStyle(
+                                      color: AppColors.primaryLight,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Email: anoopjoelyenibara@gmail.com\nPassword: Aj@5155',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontFamily: 'monospace',
+                              fontSize: 11,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
 
