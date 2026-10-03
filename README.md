@@ -12,9 +12,19 @@ A complete, production-ready, modern **User Authentication & Account Management 
 ## 🌐 Live Web Application
 
 The application is deployed and live on Firebase Hosting:
-👉 **[https://user-authentication-syst-98bd7.web.app](https://user-authentication-syst-98bd7.web.app)**
-
+* 👉 **Primary URL:** [https://user-authentication-syst-98bd7.web.app](https://user-authentication-syst-98bd7.web.app)
+* 👉 **Alternative URL:** [https://user-authentication-syst-98bd7.firebaseapp.com](https://user-authentication-syst-98bd7.firebaseapp.com)
 * **Firebase Console:** [User Authentication System Project Overview](https://console.firebase.google.com/project/user-authentication-syst-98bd7/overview)
+
+> [!IMPORTANT]
+> ### ⚙️ One-Time Firebase Console Activation
+> To allow new users to sign up and log in, ensure **Email/Password** is enabled in the Firebase Console:
+> 1. Open the [Firebase Authentication Console](https://console.firebase.google.com/project/user-authentication-syst-98bd7/authentication).
+> 2. Click the blue **"Get started"** button (if you haven't already).
+> 3. Under the **"Sign-in method"** tab, select **"Email/Password"**.
+> 4. Switch the first toggle **"Enable"** to **ON** and click **Save**.
+>
+> Once enabled, user registrations, logins, email verifications, and profile persistence will function in real time!
 
 ---
 

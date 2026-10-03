@@ -59,7 +59,12 @@ class AuthService {
       final user = userCredential.user;
       if (user != null) {
         // Update Firebase Auth display name
-        await user.updateDisplayName(fullName.trim());
+        try {
+          await user.updateDisplayName(fullName.trim());
+        } catch (e) {
+          developer.log('Initial display name update error: $e',
+              name: 'AuthService');
+        }
 
         // Send initial email verification
         try {
@@ -70,22 +75,38 @@ class AuthService {
         }
 
         // Save user profile to Firestore
-        final userModel = UserModel(
-          uid: user.uid,
-          email: user.email ?? email.trim(),
-          fullName: fullName.trim(),
-          role: 'User',
-          createdAt: DateTime.now(),
-          isEmailVerified: user.emailVerified,
-        );
-        await _firestoreService.saveUserProfile(userModel);
+        try {
+          final userModel = UserModel(
+            uid: user.uid,
+            email: user.email ?? email.trim(),
+            fullName: fullName.trim(),
+            role: 'User',
+            createdAt: DateTime.now(),
+            isEmailVerified: user.emailVerified,
+          );
+          await _firestoreService.saveUserProfile(userModel);
+        } catch (e) {
+          developer.log('Initial Firestore profile save error: $e',
+              name: 'AuthService');
+        }
 
         return AuthResult.success(user);
       }
       return AuthResult.failure('Failed to create account. Please try again.');
     } on FirebaseAuthException catch (e) {
+      developer.log('Register FirebaseAuthException: code=${e.code}, msg=${e.message}',
+          name: 'AuthService');
       return AuthResult.failure(_mapFirebaseAuthError(e));
     } catch (e) {
+      developer.log('Register general exception: $e', name: 'AuthService');
+      final str = e.toString();
+      if (str.contains('CONFIGURATION_NOT_FOUND') ||
+          str.contains('operation-not-allowed') ||
+          str.toLowerCase() == 'error') {
+        return AuthResult.failure(
+          'Firebase Authentication is not enabled yet. Please go to Firebase Console > Authentication > "Get started" and enable "Email/Password" under Sign-in method.',
+        );
+      }
       return AuthResult.failure('An unexpected error occurred: ${e.toString()}');
     }
   }
@@ -187,6 +208,18 @@ class AuthService {
 
   /// Maps technical Firebase error codes to user-friendly messages
   String _mapFirebaseAuthError(FirebaseAuthException e) {
+    final code = e.code.toLowerCase();
+    final msg = e.message ?? '';
+
+    // Check for unconfigured / uninitialized authentication
+    if (code.contains('configuration-not-found') ||
+        code.contains('configuration_not_found') ||
+        code == 'operation-not-allowed' ||
+        msg.contains('CONFIGURATION_NOT_FOUND') ||
+        msg.contains('operation-not-allowed')) {
+      return 'Firebase Authentication is not enabled yet in your Firebase Console. Please go to Firebase Console > Authentication > "Get started" and enable "Email/Password" under Sign-in method.';
+    }
+
     switch (e.code) {
       case 'user-not-found':
         return 'No account was found with this email.';
@@ -206,10 +239,11 @@ class AuthService {
         return 'Too many attempts. Please wait a few minutes before trying again.';
       case 'network-request-failed':
         return 'Network connection failed. Please check your internet connection.';
-      case 'operation-not-allowed':
-        return 'Email/Password sign-in is not enabled in Firebase Console.';
       default:
-        return e.message ?? 'An authentication error occurred. Please try again.';
+        if (msg.isNotEmpty && msg != 'Error' && !msg.startsWith('Error (')) {
+          return msg;
+        }
+        return 'Authentication service error. Please make sure "Email/Password" provider is enabled in Firebase Console.';
     }
   }
 }
